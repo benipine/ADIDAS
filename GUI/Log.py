@@ -167,8 +167,12 @@ class Ui_MainWindow(object):
         self.button_logs.setText(_translate("MainWindow", "Logs"))
         self.button_watch.setText(_translate("MainWindow", "Watch Log"))
         self.button_download.setText(_translate("MainWindow", "Download Log"))
-
-
+        
+    def change_image(self):
+        self.image_after.setPixmap(QtGui.QPixmap("image_before.png"))
+        self.image_after.repaint()
+        
+        
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
@@ -176,4 +180,8 @@ if __name__ == "__main__":
     ui = Ui_MainWindow()
     ui.setupUi(MainWindow)
     MainWindow.show()
+    while(1):
+        i = int(input(print("input number : ")))
+        if i==1:
+			ui.change_image()
     sys.exit(app.exec_())
