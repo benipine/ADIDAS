@@ -9,10 +9,32 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import Qt
+from PyQt5.QtCore import QThread
+from PyQt5.QtCore import *
+import os, sys
+import time
 
-
-class Ui_MainWindow(object):
-    def setupUi(self, MainWindow):
+class Thread1(QThread):
+    new_image = pyqtSignal(str)
+    def __init__(self, parent=None):
+        super().__init__(parent)
+    def run(self):
+        cmd= os.popen("cd ~/adidas/ADIDAS/GUI/log && ls")
+        result_old = cmd.read().strip()
+        while(1):
+            cmd= os.popen("cd ~/adidas/ADIDAS/GUI/log && ls")
+            result_new = cmd.read().strip()
+            time.sleep(1)
+            if result_new != result_old:
+                fname = result_new.replace(result_old, "").strip()
+                result_old = result_new
+                self.new_image.emit(fname)
+                
+class MainWidget(object):
+    def __init__(self, MainWindow):
+        super().__init__()
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(1440, 720)
         MainWindow.setMinimumSize(QtCore.QSize(1440, 720))
@@ -154,9 +176,12 @@ class Ui_MainWindow(object):
         self.scroll_log.setWidget(self.scroll_area)
         self.verticalLayout.addWidget(self.scroll_log)
         MainWindow.setCentralWidget(self.centralwidget)
-
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
+        
+        self.check_image = Thread1()
+        self.check_image.start()
+        self.check_image.new_image.connect(self.new_image)
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
@@ -168,20 +193,14 @@ class Ui_MainWindow(object):
         self.button_watch.setText(_translate("MainWindow", "Watch Log"))
         self.button_download.setText(_translate("MainWindow", "Download Log"))
         
-    def change_image(self):
-        self.image_after.setPixmap(QtGui.QPixmap("image_before.png"))
-        self.image_after.repaint()
-        
+    def new_image(self, fname):
+        print(fname)
+        self.image_before.setPixmap(QtGui.QPixmap("log/"+fname))
+        self.image_before.repaint()
         
 if __name__ == "__main__":
-    import sys
-    app = QtWidgets.QApplication(sys.argv)
+    app = QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
-    ui = Ui_MainWindow()
-    ui.setupUi(MainWindow)
+    ui = MainWidget(MainWindow)
     MainWindow.show()
-    while(1):
-        i = int(input(print("input number : ")))
-        if i==1:
-			ui.change_image()
-    sys.exit(app.exec_())
+    app.exec_()
