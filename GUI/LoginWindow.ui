@@ -194,7 +194,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QLineEdit" name="lineEdit">
+             <widget class="QLineEdit" name="input_id">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -212,7 +212,7 @@
 font: 18pt &quot;PibotoLt&quot;;</string>
               </property>
               <property name="text">
-               <string>KAFA04</string>
+               <string/>
               </property>
              </widget>
             </item>
@@ -254,7 +254,7 @@ font: 18pt &quot;PibotoLt&quot;;</string>
 font: 18pt &quot;PibotoLt&quot;;</string>
               </property>
               <property name="text">
-               <string>asdf</string>
+               <string/>
               </property>
               <property name="echoMode">
                <enum>QLineEdit::Password</enum>
@@ -311,4 +311,7 @@ font: 75 24pt &quot;PibotoLt&quot;;</string>
  </widget>
  <resources/>
  <connections/>
+ <slots>
+  <slot>loginclick()</slot>
+ </slots>
 </ui>
