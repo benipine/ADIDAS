@@ -1,25 +1,37 @@
-#############################################
-# Object detection - YOLO - OpenCV
-# Author : Arun Ponnusamy   (July 16, 2018)
-# Website : http://www.arunponnusamy.com
-############################################
-
+#프로그램사용법
+#python imgdtndb.py FILENAME
+#현재 파일저장위치는 프로그램위치 / output/crop_imgpath 통해서 지정할 것
 
 import cv2
-import argparse
 import numpy as np
+import sys
+import sqlite3
 
-ap = argparse.ArgumentParser()
-ap.add_argument('-i', '--image', required=True,
-                help = 'path to input image')
-ap.add_argument('-c', '--config', required=True,
-                help = 'path to yolo config file')
-ap.add_argument('-w', '--weights', required=True,
-                help = 'path to yolo pre-trained weights')
-ap.add_argument('-cl', '--classes', required=True,
-                help = 'path to text file containing class names')
-args = ap.parse_args()
 
+if len(sys.argv)!=2:
+    print("need an argument (image file)")
+    sys.exit()
+
+image_filename=sys.argv[1]
+config_file='yolov3.cfg'
+class_file='yolov3.txt'
+weights_file='yolov3.weights'
+
+
+input_imgpath='fullimage/'
+output_imgpath='fullimage/'
+crop_imgpath='cropimage/'
+
+conn = sqlite3.connect("adidas.db")
+cur = conn.cursor()
+
+cur.execute("SELECT count(*) FROM detection_data")
+rows = cur.fetchall()
+all_count = rows[0][0]
+
+def db_insert(id_num, date, category, detail):
+    cur.execute('INSERT INTO detection_data VALUES (?,?,?,?)',(id_num, date, category, detail)) 
+    conn.commit()
 
 def get_output_layers(net):
     
@@ -39,11 +51,20 @@ def draw_prediction(img, class_id, confidence, x, y, x_plus_w, y_plus_h):
     color = COLORS[class_id]
 
     cv2.rectangle(img, (x,y), (x_plus_w,y_plus_h), color, 2)
+    
+    add_space = int(Width/10) if Width>=Height else int(Height/10)
+    a= x-add_space if x-add_space>0 else 0
+    b= y-add_space if y-add_space>0 else 0
+    c= x_plus_w+add_space if x_plus_w+add_space<Width else Width
+    d= y_plus_h+add_space if y_plus_h+add_space<Height else Height
+    cv2.imwrite(crop_imgpath+image_filename,img[b:d,a:c]) 
 
     cv2.putText(img, label, (x-10,y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+    
+    db_insert(10001+all_count,image_filename[0:14],str(classes[class_id]),'none')
 
     
-image = cv2.imread(args.image)
+image = cv2.imread(input_imgpath+image_filename)
 
 Width = image.shape[1]
 Height = image.shape[0]
@@ -51,12 +72,12 @@ scale = 0.00392
 
 classes = None
 
-with open(args.classes, 'r') as f:
+with open(class_file, 'r') as f:
     classes = [line.strip() for line in f.readlines()]
 
 COLORS = np.random.uniform(0, 255, size=(len(classes), 3))
 
-net = cv2.dnn.readNet(args.weights, args.config)
+net = cv2.dnn.readNet(weights_file, config_file)
 
 blob = cv2.dnn.blobFromImage(image, scale, (416,416), (0,0,0), True, crop=False)
 
@@ -101,10 +122,16 @@ for i in indices:
     y = box[1]
     w = box[2]
     h = box[3]
-    draw_prediction(image, class_ids[i], confidences[i], round(x), round(y), round(x+w), round(y+h))
+    if 4 in class_ids:
+        if class_ids[i] == 4:
+            draw_prediction(image, class_ids[i], confidences[i], round(x), round(y), round(x+w), round(y+h))
+        else:
+            continue
+    else:
+        draw_prediction(image, class_ids[i], confidences[i], round(x), round(y), round(x+w), round(y+h))
+        break
 
-cv2.imshow("object detection", image)
-cv2.waitKey()
     
-cv2.imwrite("object-detection.jpg", image)
-cv2.destroyAllWindows()
+cv2.imwrite(output_imgpath+image_filename, image)
+
+conn.close()
