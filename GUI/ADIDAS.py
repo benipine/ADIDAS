@@ -120,13 +120,57 @@ class LogWindow(QMainWindow):
         rows= cur.fetchall()
         return rows
         
+class StatThread(QThread):
+    refresh_graph = pyqtSignal()
+    def __init__(self, date_from, date_to, parent=None):
+        super().__init__(parent)
+        self.date_from = date_from
+        self.date_to = date_to
+        
+    def run(self):
+        cmd = os.popen("python mkgraph.py "+self.date_from+" "+self.date_to)
+        print(cmd.read())
+        self.refresh_graph.emit()
+                
+    def stop(self):
+        self.quit()
+                
 class StatWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         loadUi("UI/StatusWindow.ui", self)
         
         self.button_stat.clicked.connect(self.tolog)
+        self.button_period.clicked.connect(self.setperiod)
+        self.setscroll([])
         
+    def setscroll(self, data):
+        self.scroll_stat.setWidgetResizable(True)
+        self.inner = QFrame(self.scroll_stat)
+        self.inner.setLayout(QVBoxLayout())
+        self.scroll_stat.setWidget(self.inner)
+        for i in data:
+            label=QLabel()
+            label.setMinimumSize(1, 30)
+            label.setMaximumSize(100, 30)
+            label.setText(data[1])
+            self.inner.layout().addWidget(label)
+            
+    def setperiod(self):
+        date_from=self.date_from.text().replace("-","")
+        date_to=self.date_to.text().replace("-","")
+        
+        self.calc = StatThread(date_from, date_to)
+        self.calc.start()
+        self.calc.refresh_graph.connect(self.refresh_graph)
+        self.calc.stop()
+        
+    def refresh_graph(self):
+        self.graph_detected.setPixmap(QtGui.QPixmap("graph/date.jpg"))
+        self.graph_detected.repaint()
+        self.graph_type.setPixmap(QtGui.QPixmap("graph/type.jpg"))
+        self.graph_type.repaint()
+
     def tolog(self):
         widget.setCurrentIndex(widget.currentIndex()-1)
         

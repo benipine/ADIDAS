@@ -70,10 +70,10 @@ plt.legend(type_list)
 
 ################################################
 
-plt.savefig('type.jpg')
+plt.savefig("graph/type.jpg")
 ax = plt.figure().gca()
 ax.yaxis.get_major_locator().set_params(integer=True)
 
 plt.plot(date_list, date_count)
 plt.grid(True)
-plt.savefig('date.jpg')
+plt.savefig("graph/date.jpg")
