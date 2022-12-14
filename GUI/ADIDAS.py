@@ -72,7 +72,7 @@ class LogWindow(QMainWindow):
         cur.execute("SELECT * FROM detection_data")
         rows= cur.fetchall()
         
-        for i in rows:
+        for i in reversed(rows):
             buttonname = str(i[1])
             button=QPushButton(objectName=buttonname)
             button.setMinimumSize(1, 30)
@@ -89,12 +89,8 @@ class LogWindow(QMainWindow):
             self.inner.layout().addWidget(button)
             
             date_b=date[0:4]+"-"+date[4:6]+"-"+date[6:8]+" "+date[8:10]+":"+date[10:12]+":"+date[12:14]
-            self.log_title.setText("Log #"+" "*10+str(i[0])+" "+date_b)
-            
-        last_button = self.inner.layout().itemAt(self.inner.layout().count()-1).widget()
-        print(last_button.text())
-        self.inner.layout().ensureWidgetVisible(last_button)
-            
+            self.log_title.setText("Log #"+" "+str(i[0])+"       Time : "+date_b+" (KST)")
+                  
     def tostatus(self):
         widget.setCurrentIndex(widget.currentIndex()+1)
         
