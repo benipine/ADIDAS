@@ -1,3 +1,5 @@
+# python mkgraph.py START_DAY END_DAY
+
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 import sqlite3
@@ -16,32 +18,48 @@ cur.execute("SELECT * FROM detection_data WHERE date BETWEEN ? AND ?",(start_dat
 rows= cur.fetchall()
 conn.close()
 
-#time_list = open('number', 'r').read().split('\n')
-#class_list = open('class', 'r').read().split('\n')
 
 ################################################
 
 counter = 0
 date_list = []
 date_count = []
+drone_count = []
 
 
 for i in range(len(rows)):
     
-	if i == 0:
-		date_list.append(rows[i][1][0:8])
-		date_count.append(1)
-		
-	elif rows[i-1][1][0:8] == rows[i][1][0:8]:
-		date_count[counter] += 1
-		
-	else:
-		date_list.append(rows[i][1][0:8])
-		date_count.append(1)
-		counter += 1
-	
-		
+    if i == 0:
+        date_list.append(rows[i][1][0:8])
+        date_count.append(1)
+        if(rows[i][2]=='drone' or rows[i][2]=='airplane'):
+            drone_count.append(1)
+        else:
+            drone_count.append(0)
+        
+    elif rows[i-1][1][0:8] == rows[i][1][0:8]:
+        date_count[counter] += 1
+        if(rows[i][2]=='drone' or rows[i][2]=='airplane'):
+            drone_count[counter]+=1
+            
+    else:
+        date_list.append(rows[i][1][0:8])
+        date_count.append(1)
+        counter += 1
+        if(rows[i][2]=='drone' or rows[i][2]=='airplane'):
+            drone_count.append(1)
+        else:
+            drone_count.append(0)
+
 print(date_list, date_count)
+
+################################################
+
+ratio_of_day = []
+for i in range(counter):
+    ratio_of_day.append(int((drone_count[i] / date_count[i])*100))
+
+print(ratio_of_day)
 
 ################################################
 
@@ -50,17 +68,17 @@ type_list = []
 type_count = []
 
 for i in range(len(rows)):
-	
-	if rows[i][2] in type_list:
-		for k in range(len(type_list)):
-			if rows[i][2] == type_list[k]:
-				type_count[k] += 1
-				break
-			
-	else:
-		type_list.append(rows[i][2])
-		type_count.append(1)
-		
+
+    if rows[i][2] in type_list:
+        for k in range(len(type_list)):
+            if rows[i][2] == type_list[k]:
+                type_count[k] += 1
+                break
+            
+    else:
+        type_list.append(rows[i][2])
+        type_count.append(1)
+
 print(type_list, type_count)
 
 ################################################
@@ -70,10 +88,10 @@ plt.legend(type_list)
 
 ################################################
 
-plt.savefig("graph/type.jpg")
+plt.savefig('type.jpg')
 ax = plt.figure().gca()
 ax.yaxis.get_major_locator().set_params(integer=True)
 
 plt.plot(date_list, date_count)
 plt.grid(True)
-plt.savefig("graph/date.jpg")
+plt.savefig('date.jpg')
