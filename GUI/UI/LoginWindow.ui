@@ -89,7 +89,7 @@
           <string/>
          </property>
          <property name="pixmap">
-          <pixmap>logo_adidas.png</pixmap>
+          <pixmap>GUI_basicimage/logo_adidas.png</pixmap>
          </property>
          <property name="scaledContents">
           <bool>false</bool>

@@ -91,7 +91,7 @@ background-color: rgba(255, 255, 255, 0);</string>
           <string/>
          </property>
          <property name="pixmap">
-          <pixmap>graph_type.png</pixmap>
+          <pixmap>GUI_basicimage/graph_type.png</pixmap>
          </property>
          <property name="scaledContents">
           <bool>true</bool>
@@ -116,7 +116,7 @@ background-color: rgba(255, 255, 255, 0);</string>
           <string/>
          </property>
          <property name="pixmap">
-          <pixmap>graph_detected.png</pixmap>
+          <pixmap>GUI_basicimage/graph_detected.png</pixmap>
          </property>
          <property name="scaledContents">
           <bool>true</bool>
@@ -210,7 +210,7 @@ background-color: rgba(255, 255, 255, 0);</string>
         </size>
        </property>
        <property name="styleSheet">
-        <string notr="true">background-color: rgb(250, 255, 203, 255);</string>
+        <string notr="true">background-color: rgba(250, 255, 203, 255);</string>
        </property>
        <property name="frameShape">
         <enum>QFrame::StyledPanel</enum>
@@ -221,9 +221,9 @@ background-color: rgba(255, 255, 255, 0);</string>
        <widget class="QWidget" name="verticalLayoutWidget_2">
         <property name="geometry">
          <rect>
-          <x>9</x>
-          <y>9</y>
-          <width>1401</width>
+          <x>10</x>
+          <y>10</y>
+          <width>1402</width>
           <height>231</height>
          </rect>
         </property>
@@ -252,6 +252,12 @@ background-color: rgba(255, 255, 255, 0);</string>
              </property>
              <property name="styleSheet">
               <string notr="true">background-color: rgb(255, 255, 255);</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+             <property name="displayFormat">
+              <string>yyyy-mm-dd</string>
              </property>
             </widget>
            </item>
@@ -294,6 +300,12 @@ background-color: rgba(255, 255, 255, 0);</string>
              <property name="styleSheet">
               <string notr="true">background-color: rgb(255, 255, 255);</string>
              </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+             <property name="displayFormat">
+              <string>yyyy-mm-dd</string>
+             </property>
             </widget>
            </item>
            <item>
@@ -321,7 +333,26 @@ background-color: rgba(255, 255, 255, 0);</string>
           </layout>
          </item>
          <item>
-          <layout class="QVBoxLayout" name="verticalLayout_3"/>
+          <widget class="QLabel" name="space_2">
+           <property name="minimumSize">
+            <size>
+             <width>1400</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>1400</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Date                                                                                               Detected Drones                                                                                               Ratio of Drone</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
          </item>
         </layout>
        </widget>

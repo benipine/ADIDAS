@@ -16,7 +16,7 @@ cur = conn.cursor()
 class LoginWindow(QMainWindow):
     def __init__(self):
         super(LoginWindow, self).__init__()
-        loadUi("LoginWindow.ui", self)
+        loadUi("UI/LoginWindow.ui", self)
         
         self.button_login.clicked.connect(self.loginclick)
         
@@ -37,7 +37,7 @@ class LoginWindow(QMainWindow):
         QMessageBox.critical(self, 'Login Failed', 'ID or PASSWORD is wrong')
         
 class ImageThread(QThread):
-    new_image = pyqtSignal(str)
+    refresh_window = pyqtSignal(str, int)
     def __init__(self, parent=None):
         super().__init__(parent)
     def run(self):
@@ -51,65 +51,79 @@ class ImageThread(QThread):
                 fname = result_new.replace(result_old, "").strip()
                 result_old = result_new
                 os.system("python imgdtndb.py "+fname)
-                self.new_image.emit(fname)
+                self.refresh_window.emit(fname, 1)
         
 class LogWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        loadUi("LogWindow.ui", self)
-        self.setscroll()
-
+        loadUi("UI/LogWindow.ui", self)
+        
         self.button_logs.clicked.connect(self.tostatus)
+        
+        db = self.get_db()
+        self.refresh_window(str(db[-1][1])+".jpg", 1)
+        
         self.check_image = ImageThread()
         self.check_image.start()
-        self.check_image.new_image.connect(self.new_image)
+        self.check_image.refresh_window.connect(self.refresh_window)
         
     def setscroll(self):
         self.scroll_log.setWidgetResizable(True)
         self.inner = QFrame(self.scroll_log)
         self.inner.setLayout(QVBoxLayout())
         self.scroll_log.setWidget(self.inner)
-        cur.execute("SELECT * FROM detection_data")
-        rows= cur.fetchall()
-        
+
+        rows= self.get_db()
         for i in reversed(rows):
             buttonname = str(i[1])
             button=QPushButton(objectName=buttonname)
             button.setMinimumSize(1, 30)
             button.setMaximumSize(100000, 30)
             button.setStyleSheet("font: 75 12pt 'PibotoLt';"
-"background-color: rgb(255, 255, 255);"
-"text-align: left;")
-            button.clicked.connect(self.printnum)
-            
-            date=i[1]
-            date_a=date[0:4]+"-"+date[4:6]+"-"+date[6:8]+" "+date[8:10]+":"+date[10:12]+":"+date[12:14]
+            "background-color: rgb(255, 255, 255);"
+            "text-align: left;")
+            date_a=self.adjust_date(i[1])
             button.setText(" "*60+"Log # "+str(i[0])+" "*80+date_a+" "*80+i[2])
-            
+            button.clicked.connect(self.button_work)
             self.inner.layout().addWidget(button)
             
-            date_b=date[0:4]+"-"+date[4:6]+"-"+date[6:8]+" "+date[8:10]+":"+date[10:12]+":"+date[12:14]
-            self.log_title.setText("Log #"+" "+str(i[0])+"       Time : "+date_b+" (KST)")
-                  
     def tostatus(self):
         widget.setCurrentIndex(widget.currentIndex()+1)
         
-    def new_image(self, fname):
+    def refresh_window(self, fname, isnew):
         self.image_before.setPixmap(QtGui.QPixmap("fullimage/"+fname))
         self.image_before.repaint()
         self.image_after.setPixmap(QtGui.QPixmap("cropimage/"+fname))
         self.image_after.repaint()
-        self.setscroll()
         
-    def printnum(self):
+        db = self.get_db()
+        index=0
+        for i in db:
+            if i[1] == fname.strip(".jpg"):
+                index = i[0]
+                break
+        date_a = self.adjust_date(fname)
+        self.log_title.setText("Log # "+str(index)+" "*10+"Time : "+date_a+" (KST)")
+        
+        if isnew == 1:
+            self.setscroll()
+        
+    def adjust_date(self, date):
+        return date[0:4]+"-"+date[4:6]+"-"+date[6:8]+" "+date[8:10]+":"+date[10:12]+":"+date[12:14]
+        
+    def button_work(self):
         sending_button = self.sender()
-        self.new_image(str(sending_button.objectName())+".jpg")
+        self.refresh_window(str(sending_button.objectName())+".jpg", 0)
         
+    def get_db(self):
+        cur.execute("SELECT * FROM detection_data")
+        rows= cur.fetchall()
+        return rows
         
 class StatWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        loadUi("StatusWindow.ui", self)
+        loadUi("UI/StatusWindow.ui", self)
         
         self.button_stat.clicked.connect(self.tolog)
         

@@ -81,7 +81,7 @@ background-color: rgba(255, 255, 255, 0);</string>
          <property name="minimumSize">
           <size>
            <width>500</width>
-           <height>325</height>
+           <height>0</height>
           </size>
          </property>
          <property name="maximumSize">
@@ -94,7 +94,7 @@ background-color: rgba(255, 255, 255, 0);</string>
           <string/>
          </property>
          <property name="pixmap">
-          <pixmap>image_before.png</pixmap>
+          <pixmap>GUI_basicimage/image_before.png</pixmap>
          </property>
          <property name="scaledContents">
           <bool>true</bool>
@@ -125,7 +125,7 @@ background-color: rgba(255, 255, 255, 0);</string>
           <string/>
          </property>
          <property name="pixmap">
-          <pixmap>arrow.png</pixmap>
+          <pixmap>GUI_basicimage/arrow.png</pixmap>
          </property>
          <property name="scaledContents">
           <bool>true</bool>
@@ -137,7 +137,7 @@ background-color: rgba(255, 255, 255, 0);</string>
          <property name="minimumSize">
           <size>
            <width>350</width>
-           <height>325</height>
+           <height>0</height>
           </size>
          </property>
          <property name="maximumSize">
@@ -150,7 +150,7 @@ background-color: rgba(255, 255, 255, 0);</string>
           <string/>
          </property>
          <property name="pixmap">
-          <pixmap>image_after.png</pixmap>
+          <pixmap>GUI_basicimage/image_after.png</pixmap>
          </property>
          <property name="scaledContents">
           <bool>true</bool>
@@ -270,7 +270,7 @@ background-color: rgba(255, 255, 255, 0);</string>
               <string/>
              </property>
              <property name="pixmap">
-              <pixmap>drone_image.png</pixmap>
+              <pixmap>GUI_basicimage/drone_image.png</pixmap>
              </property>
              <property name="scaledContents">
               <bool>true</bool>
@@ -330,41 +330,16 @@ background-color: rgba(255, 255, 255, 0);</string>
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="button_watch">
-         <property name="minimumSize">
-          <size>
-           <width>200</width>
-           <height>30</height>
-          </size>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>200</width>
-           <height>30</height>
-          </size>
-         </property>
-         <property name="layoutDirection">
-          <enum>Qt::LeftToRight</enum>
-         </property>
-         <property name="styleSheet">
-          <string notr="true">background-color: rgb(255, 153, 69);</string>
-         </property>
-         <property name="text">
-          <string>Watch Log</string>
-         </property>
-        </widget>
-       </item>
-       <item>
         <widget class="QPushButton" name="button_download">
          <property name="minimumSize">
           <size>
-           <width>200</width>
+           <width>300</width>
            <height>30</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>200</width>
+           <width>300</width>
            <height>30</height>
           </size>
          </property>
@@ -399,7 +374,7 @@ background-color: rgba(255, 255, 255, 0);</string>
         </size>
        </property>
        <property name="styleSheet">
-        <string notr="true">background-color: rgb(250, 255, 203, 255);</string>
+        <string notr="true">background-color: rgba(250, 255, 203, 255);</string>
        </property>
        <property name="widgetResizable">
         <bool>true</bool>
