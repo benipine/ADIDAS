@@ -1,16 +1,19 @@
-# python mkgraph.py START_DAY END_DAY
+# python mkgraph.py START_DAY END_DAY 0 -> mkgraph
+# python mkgraph.py START_DAY END_DAY 1 -> download csv
 
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 import sqlite3
 import sys
+import csv
 
-if len(sys.argv)!=3:
-    print("need arguments (start and end date)")
+if len(sys.argv)!=4:
+    print("need arguments (start , end date , mode )\nmode 0 -> making graphs\nmode 1 -> download csv\n")
     sys.exit()
     
 start_date = sys.argv[1]
 end_date = str(int(sys.argv[2])+1)
+mode = sys.argv[3]
 
 conn = sqlite3.connect("adidas.db")
 cur = conn.cursor()
@@ -18,7 +21,21 @@ cur.execute("SELECT * FROM detection_data WHERE date BETWEEN ? AND ?",(start_dat
 rows= cur.fetchall()
 conn.close()
 
+################################################
 
+def download_csv():
+    header=['id','date','category','detail']
+    with open('detection_file.csv','w',encoding='UTF8',newline='') as f:
+        writer=csv.writer(f)
+        writer.writerow(header)
+        writer.writerows(rows)
+
+################################################
+        
+if mode == '1':
+    download_csv()
+    sys.exit()
+    
 ################################################
 
 counter = 0
