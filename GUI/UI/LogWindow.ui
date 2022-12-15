@@ -90,6 +90,9 @@ background-color: rgba(255, 255, 255, 0);</string>
            <height>325</height>
           </size>
          </property>
+         <property name="frameShape">
+          <enum>QFrame::Box</enum>
+         </property>
          <property name="text">
           <string/>
          </property>
@@ -146,6 +149,9 @@ background-color: rgba(255, 255, 255, 0);</string>
            <height>325</height>
           </size>
          </property>
+         <property name="frameShape">
+          <enum>QFrame::Box</enum>
+         </property>
          <property name="text">
           <string/>
          </property>
@@ -154,6 +160,9 @@ background-color: rgba(255, 255, 255, 0);</string>
          </property>
          <property name="scaledContents">
           <bool>true</bool>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
          </property>
         </widget>
        </item>

@@ -38,6 +38,7 @@ class LoginWindow(QMainWindow):
         
 class ImageThread(QThread):
     refresh_window = pyqtSignal(str, int)
+    new_detection = pyqtSignal()
     def __init__(self, parent=None):
         super().__init__(parent)
     def run(self):
@@ -48,6 +49,7 @@ class ImageThread(QThread):
             result_new = cmd.read().strip()
             time.sleep(1)
             if result_new != result_old:
+                self.new_detection.emit()
                 fname = result_new.replace(result_old, "").strip()
                 result_old = result_new
                 os.system("python imgdtndb.py "+fname)
@@ -60,12 +62,32 @@ class LogWindow(QMainWindow):
         
         self.button_logs.clicked.connect(self.tostatus)
         
-        db = self.get_db()
-        self.refresh_window(str(db[-1][1])+".jpg", 1)
+        self.db = self.get_db()
+        self.refresh_window(str(self.db[-1][1])+".jpg", 1)
         
         self.check_image = ImageThread()
         self.check_image.start()
         self.check_image.refresh_window.connect(self.refresh_window)
+        self.check_image.new_detection.connect(self.new_detection)
+        
+    def refresh_window(self, fname, isnew):
+        if isnew == 1:
+            self.setscroll()
+            
+        index = 0
+        det_type = ""
+        for i in self.db:
+            if i[1] == fname.strip(".jpg"):
+                index = i[0]
+                det_type = i[2].upper()
+                break
+        date_a = self.adjust_date(fname)
+        self.log_title.setText("Log # "+str(index)+" "*10+"Time : "+date_a+" (KST)")
+        self.type_text.setText("TYPE : "+det_type)
+        self.image_before.setPixmap(QtGui.QPixmap("fullimage/"+fname))
+        self.image_after.setPixmap(QtGui.QPixmap("cropimage/"+fname))
+        self.image_before.repaint()
+        self.image_after.repaint()
         
     def setscroll(self):
         self.scroll_log.setWidgetResizable(True)
@@ -73,8 +95,8 @@ class LogWindow(QMainWindow):
         self.inner.setLayout(QVBoxLayout())
         self.scroll_log.setWidget(self.inner)
 
-        rows= self.get_db()
-        for i in reversed(rows):
+        self.db = self.get_db()
+        for i in reversed(self.db):
             buttonname = str(i[1])
             button=QPushButton(objectName=buttonname)
             button.setMinimumSize(1, 30)
@@ -83,42 +105,32 @@ class LogWindow(QMainWindow):
             "background-color: rgb(255, 255, 255);"
             "text-align: left;")
             date_a=self.adjust_date(i[1])
-            button.setText(" "*60+"Log # "+str(i[0])+" "*80+date_a+" "*80+i[2])
+            button.setText(" "*60+"Log # "+str(i[0])+" "*80+date_a+" "*80+i[2].upper())
             button.clicked.connect(self.button_work)
             self.inner.layout().addWidget(button)
             
-    def tostatus(self):
-        widget.setCurrentIndex(widget.currentIndex()+1)
-        
-    def refresh_window(self, fname, isnew):
-        self.image_before.setPixmap(QtGui.QPixmap("fullimage/"+fname))
-        self.image_before.repaint()
-        self.image_after.setPixmap(QtGui.QPixmap("cropimage/"+fname))
-        self.image_after.repaint()
-        
-        db = self.get_db()
-        index=0
-        for i in db:
-            if i[1] == fname.strip(".jpg"):
-                index = i[0]
-                break
-        date_a = self.adjust_date(fname)
-        self.log_title.setText("Log # "+str(index)+" "*10+"Time : "+date_a+" (KST)")
-        
-        if isnew == 1:
-            self.setscroll()
-        
-    def adjust_date(self, date):
-        return date[0:4]+"-"+date[4:6]+"-"+date[6:8]+" "+date[8:10]+":"+date[10:12]+":"+date[12:14]
-        
     def button_work(self):
         sending_button = self.sender()
         self.refresh_window(str(sending_button.objectName())+".jpg", 0)
+        
+    def new_detection(self):
+        self.log_title.setText("Loading New Log ...")
+        self.type_text.setText("TYPE : Detecting ...")
+        self.image_before.clear()
+        self.image_after.clear()
+        self.image_before.setText("New Image Detected and Loading ...")
+        self.image_after.setText("New Image Detected and Loading ...")
+            
+    def adjust_date(self, date):
+        return date[0:4]+"-"+date[4:6]+"-"+date[6:8]+" "+date[8:10]+":"+date[10:12]+":"+date[12:14]
         
     def get_db(self):
         cur.execute("SELECT * FROM detection_data")
         rows= cur.fetchall()
         return rows
+        
+    def tostatus(self):
+        widget.setCurrentIndex(widget.currentIndex()+1)
         
 class StatThread(QThread):
     refresh_graph = pyqtSignal()
@@ -160,6 +172,11 @@ class StatWindow(QMainWindow):
         date_from=self.date_from.text().replace("-","")
         date_to=self.date_to.text().replace("-","")
         
+        self.graph_detected.clear()
+        self.graph_type.clear()
+        self.graph_detected.setText("Loading ...")
+        self.graph_type.setText("Loading ...")
+        
         self.calc = StatThread(date_from, date_to)
         self.calc.start()
         self.calc.refresh_graph.connect(self.refresh_graph)
@@ -167,8 +184,8 @@ class StatWindow(QMainWindow):
         
     def refresh_graph(self):
         self.graph_detected.setPixmap(QtGui.QPixmap("graph/date.jpg"))
-        self.graph_detected.repaint()
         self.graph_type.setPixmap(QtGui.QPixmap("graph/type.jpg"))
+        self.graph_detected.repaint()
         self.graph_type.repaint()
 
     def tolog(self):
