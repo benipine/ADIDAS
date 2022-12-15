@@ -42,10 +42,10 @@ class ImageThread(QThread):
     def __init__(self, parent=None):
         super().__init__(parent)
     def run(self):
-        cmd= os.popen("cd ~/ADIDAS/ADIDAS/GUI/fullimage && ls")
+        cmd= os.popen("cd ~/adidas/ADIDAS/GUI/fullimage && ls")
         result_old = cmd.read().strip()
         while(1):
-            cmd= os.popen("cd ~/ADIDAS/ADIDAS/GUI/fullimage && ls")
+            cmd= os.popen("cd ~/adidas/ADIDAS/GUI/fullimage && ls")
             result_new = cmd.read().strip()
             time.sleep(1)
             if result_new != result_old:
@@ -133,16 +133,33 @@ class LogWindow(QMainWindow):
         widget.setCurrentIndex(widget.currentIndex()+1)
         
 class StatThread(QThread):
-    refresh_graph = pyqtSignal()
+    refresh_graph = pyqtSignal(list)
     def __init__(self, date_from, date_to, parent=None):
         super().__init__(parent)
         self.date_from = date_from
         self.date_to = date_to
         
     def run(self):
-        cmd = os.popen("python mkgraph.py "+self.date_from+" "+self.date_to)
-        print(cmd.read())
-        self.refresh_graph.emit()
+        cmd = os.popen("python mkgraph.py "+self.date_from+" "+self.date_to+" 0")
+        cmdlist = cmd.read().split(";")
+        finallist = list()
+        for i in cmdlist:
+            finallist.append(i.strip().strip("[").strip("]").split(", "))
+        self.refresh_graph.emit(finallist)
+                
+    def stop(self):
+        self.quit()
+        
+class DownThread(QThread):
+    complete_alert = pyqtSignal()
+    def __init__(self, date_from, date_to, parent=None):
+        super().__init__(parent)
+        self.date_from = date_from
+        self.date_to = date_to
+        
+    def run(self):
+        os.system("python mkgraph.py "+self.date_from+" "+self.date_to+" 1")
+        self.complete_alert.emit()
                 
     def stop(self):
         self.quit()
@@ -154,44 +171,86 @@ class StatWindow(QMainWindow):
         
         self.button_stat.clicked.connect(self.tolog)
         self.button_period.clicked.connect(self.setperiod)
+        self.button_csv.clicked.connect(self.downloadcsv)
         self.setscroll([])
+        
+    def setperiod(self):
+        self.date_f=self.date_from.text().replace("-","")
+        self.date_t=self.date_to.text().replace("-","")
+        self.loading()
+        self.calc = StatThread(self.date_f, self.date_t)
+        self.calc.start()
+        self.calc.refresh_graph.connect(self.refresh_graph)
+        self.calc.stop()
+        
+    def loading(self):
+        self.graph_detected.clear()
+        self.graph_type.clear()
+        self.graph_detected.setText("Loading ...")
+        self.graph_type.setText("Loading ...")
+        
+        self.scroll_stat.setWidgetResizable(True)
+        self.inner = QFrame(self.scroll_stat)
+        self.inner.setLayout(QVBoxLayout())
+        self.scroll_stat.setWidget(self.inner)
+        label=QLabel()
+        label.setMinimumSize(1100, 30)
+        label.setMaximumSize(1100, 30)
+        label.setText("Loading ...")
+        label.setAlignment(Qt.AlignCenter)
+        self.inner.layout().addWidget(label)
+        
+    def refresh_graph(self, data):
+        self.graph_detected.setPixmap(QtGui.QPixmap("graph/date.jpg"))
+        self.graph_type.setPixmap(QtGui.QPixmap("graph/type.jpg"))
+        self.graph_detected.repaint()
+        self.graph_type.repaint()
+        self.setscroll(data)
         
     def setscroll(self, data):
         self.scroll_stat.setWidgetResizable(True)
         self.inner = QFrame(self.scroll_stat)
         self.inner.setLayout(QVBoxLayout())
         self.scroll_stat.setWidget(self.inner)
-        for i in data:
-            label=QLabel()
-            label.setMinimumSize(1, 30)
-            label.setMaximumSize(100, 30)
-            label.setText(data[1])
-            self.inner.layout().addWidget(label)
-            
-    def setperiod(self):
-        date_from=self.date_from.text().replace("-","")
-        date_to=self.date_to.text().replace("-","")
-        
-        self.graph_detected.clear()
-        self.graph_type.clear()
-        self.graph_detected.setText("Loading ...")
-        self.graph_type.setText("Loading ...")
-        
-        self.calc = StatThread(date_from, date_to)
-        self.calc.start()
-        self.calc.refresh_graph.connect(self.refresh_graph)
-        self.calc.stop()
-        
-    def refresh_graph(self):
-        self.graph_detected.setPixmap(QtGui.QPixmap("graph/date.jpg"))
-        self.graph_type.setPixmap(QtGui.QPixmap("graph/type.jpg"))
-        self.graph_detected.repaint()
-        self.graph_type.repaint()
+        try:
+            for j in range(len(data[0])):
+                text=" "*26
+                text += data[0][j][0:4]+"-"+data[0][j][4:6]+"-"+data[0][j][6:8]+" "*91
+                text += data[1][j]+" "*98
+                text += data[2][j]+"%"
+                label=QLabel()
+                label.setMinimumSize(1000, 30)
+                label.setMaximumSize(1000, 30)
+                label.setText(text)
+                self.inner.layout().addWidget(label)
+        except:
+            pass
 
+    def downloadcsv(self):
+        try:
+            self.down = DownThread(self.date_f, self.date_t)
+            self.downloading()
+            self.down.start()
+            self.down.complete_alert.connect(self.downsuccess)
+            self.calc.stop()
+            
+        except:
+            QMessageBox.warning(self, 'Download Failed', 'Set period first to Download in .csv file')
+        
+    def downloading(self):
+        self.button_csv.setEnabled(False)
+        self.button_csv.setStyleSheet("background-color: rgb(255, 255, 255);")
+        self.button_csv.setText("Downloading ...")
+        
+    def downsuccess(self):
+        self.button_csv.setEnabled(True)
+        self.button_csv.setText("Download as .csv")
+        self.button_csv.setStyleSheet("background-color: rgb(255, 153, 69);")
+        QMessageBox.information(self, 'Download Success', 'Your .csv file has been successfully downloaded!')
+        
     def tolog(self):
         widget.setCurrentIndex(widget.currentIndex()-1)
         
-    
 if __name__=='__main__':
     app = QApplication(sys.argv)
     widget = QtWidgets.QStackedWidget()

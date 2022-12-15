@@ -68,15 +68,14 @@ for i in range(len(rows)):
         else:
             drone_count.append(0)
 
-print(date_list, date_count)
-
 ################################################
 
 ratio_of_day = []
 for i in range(counter):
     ratio_of_day.append(int((drone_count[i] / date_count[i])*100))
 
-print(ratio_of_day)
+date_list_int = list(map(int, date_list))
+print(str(date_list_int)+";"+str(drone_count)+";"+str(ratio_of_day))
 
 ################################################
 
@@ -96,13 +95,13 @@ for i in range(len(rows)):
         type_list.append(rows[i][2])
         type_count.append(1)
 
-print(type_list, type_count)
+#print(type_list, type_count)
 
 ################################################
 
 plt.pie(type_count)
 plt.legend(type_list)
-plt.savefig('type.jpg')
+plt.savefig('graph/type.jpg')
 
 ################################################
 
@@ -119,4 +118,4 @@ elif len(date_list) <= 14:
 	date_size = 4
     
 plt.xticks(date_list, date_list, size = date_size)
-plt.savefig('date.jpg')
+plt.savefig('graph/date.jpg')

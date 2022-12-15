@@ -476,6 +476,9 @@ background-color: rgba(255, 255, 255, 0);</string>
                <property name="verticalScrollBarPolicy">
                 <enum>Qt::ScrollBarAlwaysOn</enum>
                </property>
+               <property name="horizontalScrollBarPolicy">
+                <enum>Qt::ScrollBarAlwaysOff</enum>
+               </property>
                <property name="widgetResizable">
                 <bool>true</bool>
                </property>
