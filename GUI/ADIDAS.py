@@ -17,7 +17,7 @@ class LoginWindow(QMainWindow):
     def __init__(self):
         super(LoginWindow, self).__init__()
         loadUi("UI/LoginWindow.ui", self)
-        
+
         self.button_login.clicked.connect(self.loginclick)
         
     def loginclick(self):
@@ -85,8 +85,8 @@ class LogWindow(QMainWindow):
         self.log_title.setText("Log # "+str(index)+" "*10+"Time : "+date_a+" (KST)")
         self.type_text.setText("TYPE : "+det_type)
         self.image_before.setPixmap(QtGui.QPixmap("fullimage/"+fname))
-        self.image_after.setPixmap(QtGui.QPixmap("cropimage/"+fname))
         self.image_before.repaint()
+        self.image_after.setPixmap(QtGui.QPixmap("cropimage/"+fname))
         self.image_after.repaint()
         
     def setscroll(self):
