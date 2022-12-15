@@ -85,13 +85,21 @@ print(type_list, type_count)
 
 plt.pie(type_count)
 plt.legend(type_list)
+plt.savefig('type.jpg')
 
 ################################################
 
-plt.savefig('type.jpg')
 ax = plt.figure().gca()
 ax.yaxis.get_major_locator().set_params(integer=True)
 
 plt.plot(date_list, date_count)
 plt.grid(True)
+
+if len(date_list) <= 7:
+	date_size = 9
+    
+elif len(date_list) <= 14:
+	date_size = 4
+    
+plt.xticks(date_list, date_list, size = date_size)
 plt.savefig('date.jpg')
