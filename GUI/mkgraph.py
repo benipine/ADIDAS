@@ -2,7 +2,7 @@
 # python mkgraph.py START_DAY END_DAY 1 -> download csv
 
 import matplotlib.pyplot as plt
-from matplotlib.ticker import MaxNLocator
+#from matplotlib.ticker import MaxNLocator
 import sqlite3
 import sys
 import csv
