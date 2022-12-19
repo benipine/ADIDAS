@@ -25,8 +25,6 @@ def getidpw():
     for i in range(len(tmp_id)):
         id_list.append(tmp_id[i].strip())
         pw_list.append(tmp_pw[i].strip())
-    print(id_list)
-    print(pw_list)
     idfile.close()
     pwfile.close()
     
@@ -47,30 +45,21 @@ class ChangePW(QtWidgets.QDialog, PWDialog):
         con_pw = encrypt(self.confirm_newpw.text())
         
         if cur_id not in id_list:
-            self.curwrong()
+            QMessageBox.critical(self, 'Changing Password Failed', 'Current ID or Current PASSWORD is wrong')
         else:
             if cur_pw != pw_list[id_list.index(cur_id)]:
-                self.curwrong()
+                QMessageBox.critical(self, 'Changing Password Failed', 'Current ID or Current PASSWORD is wrong')
             else:
                 if con_pw != new_pw:
-                    self.conwrong()
+                     QMessageBox.critical(self, 'Changing Password Failed', 'New Password does not match with Confirm Password')
                 else:
                     pw_list[id_list.index(cur_id)] = new_pw
                     pwfile = open("UI/pw.txt", 'w')
                     for i in range(len(pw_list)):
                         pwfile.write(str(pw_list[i])+"\n")
-                    self.changed()
+                    QMessageBox.information(self, 'Password Changed', 'Your password has been changed!')
                     pwfile.close()
                     self.close()
-        
-    def curwrong(self):
-        QMessageBox.critical(self, 'Changing Password Failed', 'Current ID or Current PASSWORD is wrong')
-        
-    def conwrong(self):
-        QMessageBox.critical(self, 'Changing Password Failed', 'New Password does not match with Confirm Password')
-        
-    def changed(self):
-        QMessageBox.information(self, 'Password Changed', 'Your password has been changed!')
         
 class LoginWindow(QMainWindow):
     def __init__(self):
@@ -124,6 +113,7 @@ class LogWindow(QMainWindow):
         loadUi("UI/LogWindow.ui", self)
         
         self.button_logs.clicked.connect(self.tostatus)
+        self.button_download.clicked.connect(self.download)
         
         self.db = self.get_db()
         self.refresh_window(str(self.db[-1][1])+".jpg", 1)
@@ -143,21 +133,23 @@ class LogWindow(QMainWindow):
             if i[1] == fname.strip(".jpg"):
                 index = i[0]
                 det_type = i[2].upper()
+                det_name = i[3].upper()
                 break
         date_a = self.adjust_date(fname)
         self.log_title.setText("Log # "+str(index)+" "*10+"Time : "+date_a+" (KST)")
         self.type_text.setText("TYPE : "+det_type)
+        self.drone_name.setText(det_name)
         self.image_before.setPixmap(QtGui.QPixmap("fullimage/"+fname))
         self.image_before.repaint()
         self.image_after.setPixmap(QtGui.QPixmap("cropimage/"+fname))
         self.image_after.repaint()
+        self.button_download.setObjectName("d"+fname)
         
     def setscroll(self):
         self.scroll_log.setWidgetResizable(True)
         self.inner = QFrame(self.scroll_log)
         self.inner.setLayout(QVBoxLayout())
         self.scroll_log.setWidget(self.inner)
-
         self.db = self.get_db()
         for i in reversed(self.db):
             buttonname = str(i[1])
@@ -179,6 +171,7 @@ class LogWindow(QMainWindow):
     def new_detection(self):
         self.log_title.setText("Loading New Log ...")
         self.type_text.setText("TYPE : Detecting ...")
+        self.drone_name.setText("Detecting ...")
         self.image_before.clear()
         self.image_after.clear()
         self.image_before.setText("New Image Detected and Loading ...")
@@ -191,6 +184,11 @@ class LogWindow(QMainWindow):
         cur.execute("SELECT * FROM detection_data")
         rows= cur.fetchall()
         return rows
+        
+    def download(self):
+        sending_button = self.sender().objectName().replace("d","")
+        os.system("cp "+"~/adidas/ADIDAS/GUI/fullimage/"+sending_button+" ~/Desktop/"+self.adjust_date(sending_button).replace(" ","_")+".jpg")
+        QMessageBox.information(self, 'Download Success', 'Your image file has been successfully downloaded to\n~/Desktop folder')
         
     def tostatus(self):
         widget.setCurrentIndex(widget.currentIndex()+1)
@@ -295,7 +293,7 @@ class StatWindow(QMainWindow):
             self.downloading()
             self.down.start()
             self.down.complete_alert.connect(self.downsuccess)
-            self.calc.stop()
+            self.down.stop()
             
         except:
             QMessageBox.warning(self, 'Download Failed', 'Set period first to Download in .csv file')
