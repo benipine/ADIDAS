@@ -2,7 +2,7 @@
 # python mkgraph.py START_DAY END_DAY 1 -> download csv
 
 import matplotlib.pyplot as plt
-from matplotlib.ticker import MaxNLocator
+#from matplotlib.ticker import MaxNLocator
 import sqlite3
 import sys
 import csv
@@ -94,8 +94,6 @@ for i in range(len(rows)):
     else:
         type_list.append(rows[i][2])
         type_count.append(1)
-
-#print(type_list, type_count)
 
 ################################################
 
