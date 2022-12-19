@@ -2,6 +2,7 @@ import os
 import sys
 import time
 import sqlite3
+import hashlib
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import *
@@ -12,19 +13,77 @@ from PyQt5.uic import *
 
 conn = sqlite3.connect("adidas.db")
 cur = conn.cursor()
+id_list = list()
+pw_list = list()
+PWDialog = uic.loadUiType("UI/ChangePW.ui")[0]
 
+def getidpw():
+    idfile = open("UI/id.txt", 'r')
+    pwfile = open("UI/pw.txt", 'r')
+    tmp_id = idfile.readlines()
+    tmp_pw = pwfile.readlines()
+    for i in range(len(tmp_id)):
+        id_list.append(tmp_id[i].strip())
+        pw_list.append(tmp_pw[i].strip())
+    print(id_list)
+    print(pw_list)
+    idfile.close()
+    pwfile.close()
+    
+def encrypt(tmp):
+    return hashlib.sha256(tmp.encode()).hexdigest()
+
+class ChangePW(QtWidgets.QDialog, PWDialog):
+    def __init__(self, parent=None):
+        QtWidgets.QDialog.__init__(self, parent)
+        self.setupUi(self)
+        
+        self.button_save.clicked.connect(self.save)
+        
+    def save(self):
+        cur_id = encrypt(self.input_id.text())
+        cur_pw = encrypt(self.input_oldpw.text())
+        new_pw = encrypt(self.input_newpw.text())
+        con_pw = encrypt(self.confirm_newpw.text())
+        
+        if cur_id not in id_list:
+            self.curwrong()
+        else:
+            if cur_pw != pw_list[id_list.index(cur_id)]:
+                self.curwrong()
+            else:
+                if con_pw != new_pw:
+                    self.conwrong()
+                else:
+                    pw_list[id_list.index(cur_id)] = new_pw
+                    pwfile = open("UI/pw.txt", 'w')
+                    for i in range(len(pw_list)):
+                        pwfile.write(str(pw_list[i])+"\n")
+                    self.changed()
+                    pwfile.close()
+                    self.close()
+        
+    def curwrong(self):
+        QMessageBox.critical(self, 'Changing Password Failed', 'Current ID or Current PASSWORD is wrong')
+        
+    def conwrong(self):
+        QMessageBox.critical(self, 'Changing Password Failed', 'New Password does not match with Confirm Password')
+        
+    def changed(self):
+        QMessageBox.information(self, 'Password Changed', 'Your password has been changed!')
+        
 class LoginWindow(QMainWindow):
     def __init__(self):
         super(LoginWindow, self).__init__()
         loadUi("UI/LoginWindow.ui", self)
 
         self.button_login.clicked.connect(self.loginclick)
+        self.button_changepw.clicked.connect(self.changepw)
         
     def loginclick(self):
-        login_id = self.input_id.text()
-        login_pw = self.input_pw.text()
-        id_list = ["KAFA04"]
-        pw_list = ["1234"]
+        login_id = encrypt(self.input_id.text())
+        login_pw = encrypt(self.input_pw.text())
+
         if login_id not in id_list:
             self.loginwrong()
         else:
@@ -33,6 +92,10 @@ class LoginWindow(QMainWindow):
             else:
                 widget.setCurrentIndex(widget.currentIndex()+1)
     
+    def changepw(self):
+        changepw = ChangePW()
+        changepw.exec_()
+        
     def loginwrong(self):
         QMessageBox.critical(self, 'Login Failed', 'ID or PASSWORD is wrong')
         
@@ -252,6 +315,7 @@ class StatWindow(QMainWindow):
         widget.setCurrentIndex(widget.currentIndex()-1)
         
 if __name__=='__main__':
+    getidpw()
     app = QApplication(sys.argv)
     widget = QtWidgets.QStackedWidget()
     
