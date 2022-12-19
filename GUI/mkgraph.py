@@ -95,8 +95,6 @@ for i in range(len(rows)):
         type_list.append(rows[i][2])
         type_count.append(1)
 
-#print(type_list, type_count)
-
 ################################################
 
 plt.pie(type_count)
