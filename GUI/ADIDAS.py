@@ -3,6 +3,7 @@ import sys
 import time
 import sqlite3
 import hashlib
+import RPi.GPIO as GPIO
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import *
@@ -16,7 +17,18 @@ cur = conn.cursor()
 id_list = list()
 pw_list = list()
 PWDialog = uic.loadUiType("UI/ChangePW.ui")[0]
+buzzer = 18
+led=17
 
+def GPIO_init():
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setup(buzzer, GPIO.OUT)
+    GPIO.setup(led, GPIO.OUT)
+    GPIO.setwarnings(False)
+    GPIO.output(buzzer, GPIO.LOW)
+    GPIO.output(led, False)
+    GPIO.cleanup()
+    
 def getidpw():
     idfile = open("UI/id.txt", 'r')
     pwfile = open("UI/pw.txt", 'r')
@@ -87,13 +99,39 @@ class LoginWindow(QMainWindow):
         
     def loginwrong(self):
         QMessageBox.critical(self, 'Login Failed', 'ID or PASSWORD is wrong')
-        
+
+class BLThread(QThread):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setup(buzzer, GPIO.OUT)
+        GPIO.setup(led, GPIO.OUT)
+        GPIO.setwarnings(False)
+    
+    def run(self):
+        try:
+            for i in range(30):
+                GPIO.output(buzzer, GPIO.HIGH)
+                GPIO.output(led, True)
+                time.sleep(0.05)
+                GPIO.output(buzzer, GPIO.LOW)
+                GPIO.output(led, False)
+                time.sleep(0.05)
+        except:
+            print("error")
+    
+        finally:
+            GPIO.cleanup()
+            self.quit()
+            
 class ImageThread(QThread):
     refresh_window = pyqtSignal(str, int)
     new_detection = pyqtSignal()
+    
     def __init__(self, parent=None):
         super().__init__(parent)
     def run(self):
+        
         cmd= os.popen("cd ~/adidas/ADIDAS/GUI/fullimage && ls")
         result_old = cmd.read().strip()
         while(1):
@@ -105,6 +143,8 @@ class ImageThread(QThread):
                 fname = result_new.replace(result_old, "").strip()
                 result_old = result_new
                 os.system("python imgdtndb.py "+fname)
+                self.blthread = BLThread()
+                self.blthread.start()
                 self.refresh_window.emit(fname, 1)
         
 class LogWindow(QMainWindow):
@@ -116,7 +156,10 @@ class LogWindow(QMainWindow):
         self.button_download.clicked.connect(self.download)
         
         self.db = self.get_db()
-        self.refresh_window(str(self.db[-1][1])+".jpg", 1)
+        try:
+            self.refresh_window(str(self.db[-1][1])+".jpg", 1)
+        except:
+            print("")
         
         self.check_image = ImageThread()
         self.check_image.start()
@@ -140,9 +183,11 @@ class LogWindow(QMainWindow):
         self.type_text.setText("TYPE : "+det_type)
         self.drone_name.setText(det_name)
         self.image_before.setPixmap(QtGui.QPixmap("fullimage/"+fname))
-        self.image_before.repaint()
         self.image_after.setPixmap(QtGui.QPixmap("cropimage/"+fname))
+        self.drone_image.setPixmap(QtGui.QPixmap("UI/GUI_basicimage/drone_image.png"))
+        self.image_before.repaint()
         self.image_after.repaint()
+        self.drone_image.repaint()
         self.button_download.setObjectName("d"+fname)
         
     def setscroll(self):
@@ -174,8 +219,10 @@ class LogWindow(QMainWindow):
         self.drone_name.setText("Detecting ...")
         self.image_before.clear()
         self.image_after.clear()
+        self.drone_image.clear()
         self.image_before.setText("New Image Detected and Loading ...")
         self.image_after.setText("New Image Detected and Loading ...")
+        self.drone_image.setText("New Image\nDetected and Loading ...")
             
     def adjust_date(self, date):
         return date[0:4]+"-"+date[4:6]+"-"+date[6:8]+" "+date[8:10]+":"+date[10:12]+":"+date[12:14]
@@ -313,7 +360,9 @@ class StatWindow(QMainWindow):
         widget.setCurrentIndex(widget.currentIndex()-1)
         
 if __name__=='__main__':
+    GPIO_init()
     getidpw()
+    
     app = QApplication(sys.argv)
     widget = QtWidgets.QStackedWidget()
     
