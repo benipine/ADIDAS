@@ -1,0 +1,9 @@
+framrate 15 -> 1
+threshold 1500 -> 5000
+pre_capture 3 -> 0
+picture_filename %Y%m%d%H%M%S-%q -> %Y%m%d%H%M%S
+
+
+
+/etc/motion
+sudo chmod 777 motion.conf
